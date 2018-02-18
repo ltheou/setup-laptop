@@ -1,0 +1,50 @@
+---
+
+- name: Create me (:
+  user: 
+    name: noursipluche
+    comment: "Noursipluche"
+    uid: 1000
+    createhome: yes
+    groups: wheel,operator
+    append: yes
+
+- name: System configuration files
+  copy:
+    src: files/etc/
+    dest: /etc/
+  copy:
+    src: files/boot/
+    dest: /boot/
+
+- name: Install system packages
+  package: name="{{ item }}" state=present
+  with_items:
+    - security/doas
+    - sysutils/automount
+    - shells/zsh
+    - misc/mc
+    - sysutils/devcpu-data
+    - editors/vim
+
+- name: Install X11 minimal packages
+  package: name="{{ item  }}" state=present
+  with_items:
+    - x11-servers/xorg-server 
+    - x11-drivers/xorg-drivers
+    - x11/init
+    - x11/xauth
+    - x11-fonts/xorg-fonts
+    - x11-fonts/webfonts
+
+- name: Install window manager and userland apps
+  package: name={{ item }} state=present
+  with_items:
+    - x11-wm/openbox
+    - deskutils/pypanel
+    - graphics/feh
+    - x11-fm/xfe
+    - x11/xterm
+    - www/firefox-esr
+    - www/chromium
+    - 
