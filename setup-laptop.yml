@@ -1,50 +1,111 @@
 ---
+- hosts: all
+  remote_user: root
 
-- name: Create me (:
-  user: 
-    name: noursipluche
-    comment: "Noursipluche"
-    uid: 1000
-    createhome: yes
-    groups: wheel,operator
-    append: yes
+  tasks:
+  - name: Let there be light and create me
+    user: 
+      name: noursipluche
+      comment: "Noursipluche"
+      uid: 1000
+      createhome: yes
+      groups: wheel,operator
+      append: yes
+      shell: /usr/local/bin/zsh
 
-- name: System configuration files
-  copy:
-    src: files/etc/
-    dest: /etc/
-  copy:
-    src: files/boot/
-    dest: /boot/
+  - name: Copy system configuration files
+    copy:
+      src: files/etc/
+      dest: /etc/
+  
+  - name: Copy boot configuration files
+    copy:
+      src: files/boot/
+      dest: /boot/
 
-- name: Install system packages
-  package: name="{{ item }}" state=present
-  with_items:
-    - security/doas
-    - sysutils/automount
-    - shells/zsh
-    - misc/mc
-    - sysutils/devcpu-data
-    - editors/vim
+#  - name: Modify locale in login.conf
+#    blockinfile:
+#      path: /etc/login.conf
+#      block: "\
+#        \:charset=UTF-8:\
+#        \:lang=en_US.UTF-8:"
+#      insertafter: "\:umask=022:"
 
-- name: Install X11 minimal packages
-  package: name="{{ item  }}" state=present
-  with_items:
-    - x11-servers/xorg-server 
-    - x11-drivers/xorg-drivers
-    - x11/init
-    - x11/xauth
-    - x11-fonts/xorg-fonts
-    - x11-fonts/webfonts
+  - name: Modify /etc/profile
+    blockinfile:
+      path: /etc/profile
+      block: |
+        LANG=en_US.UTF-8; export LANG
+        CHARSET=UTF-8; export CHARSET
 
-- name: Install window manager and userland apps
-  package: name={{ item }} state=present
-  with_items:
-    - x11-wm/openbox
-    - deskutils/pypanel
-    - graphics/feh
-    - x11-fm/xfe
-    - x11/xterm
-    - www/firefox-esr
-    - www/chromium
-    - 
+  - name: Install system packages
+    package: name="{{ item }}" state=present
+    with_items:
+      - security/doas
+      - sysutils/automount
+      - shells/zsh
+      - misc/mc
+      - sysutils/devcpu-data
+      - editors/vim
+      - sysutils/bsdinfo
+
+  - name: Install X11 minimal packages
+    package: name="{{ item  }}" state=present
+    with_items:
+      - x11-servers/xorg-server 
+      - x11-drivers/xorg-drivers
+      - x11/xinit
+      - x11/xauth
+      - x11-fonts/xorg-fonts
+      - x11-fonts/webfonts
+
+  - name: Install window manager and userland apps
+    package: name={{ item }} state=present
+    with_items:
+      - x11-wm/openbox
+      - deskutils/pypanel
+      - graphics/imlib2
+      - graphics/feh
+      - x11-fm/xfe
+      - x11/xterm
+      - www/firefox-esr
+      - www/iridium
+
+  - name: Create OpenBox configuration directory for user
+    file: 
+      path: /home/noursipluche/.config/openbox
+      state: directory
+      owner: noursipluche
+      group: noursipluche
+
+  - name: Copy remote menu.xml to user config dir
+    copy:
+      src: /usr/local/etc/xdg/openbox/menu.xml
+      dest: /home/noursipluche/.config/openbox/menu.xml
+      remote_src: yes
+      owner: noursipluche
+      group: noursipluche
+
+  - name: Copy remote rc.xml to user config dir
+    copy:
+      src: /usr/local/etc/xdg/openbox/rc.xml
+      dest: /home/noursipluche/.config/openbox/rc.xml
+      remote_src: yes
+      owner: noursipluche
+      group: noursipluche
+
+  - name: Copy autostart.sh
+    copy:
+      src: files/home/.config/openbox/autostart.sh
+      dest: /home/noursipluche/.config/openbox/autostart.sh
+      owner: noursipluche
+      group: noursipluche
+      mode: u+rwx
+
+  - name: Copy .xinitrc
+    copy:
+      src: files/home/.xinitrc
+      dest: /home/noursipluche/.xinitrc
+      owner: noursipluche
+      group: noursipluche
+
